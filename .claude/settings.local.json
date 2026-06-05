@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp *)",
+      "Bash(npx -y mcp-search-tools --help)",
+      "Bash(npm search *)",
+      "WebSearch",
+      "Bash(mysql -u root -proot video -e \"DESCRIBE video_task;\")",
+      "Bash(mysql *)",
+      "Bash(.\\\\mvnw compile *)",
+      "Bash(mvn compile *)",
+      "Bash(./mvnw.cmd compile *)",
+      "Bash(yt-dlp --version)",
+      "Bash(pip install *)",
+      "Bash(pip3 install *)",
+      "Bash(winget --version)",
+      "Bash(powershell -Command \"Get-Command yt-dlp -ErrorAction SilentlyContinue; Write-Host '---'; Get-Command pip -ErrorAction SilentlyContinue\")",
+      "Bash(winget install *)",
+      "Bash(curl -L -o /usr/local/bin/yt-dlp \"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp\")",
+      "Bash(powershell *)",
+      "Bash(curl.exe -L -o \"C:\\\\Users\\\\yxc\\\\Desktop\\\\AispringVideo\\\\yt-dlp.exe\" \"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe\")",
+      "Bash(curl.exe -k -L -o \"C:\\\\Users\\\\yxc\\\\Desktop\\\\AispringVideo\\\\yt-dlp.exe\" \"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe\")",
+      "Bash(curl.exe --ssl-no-revoke -L -o \"C:\\\\Users\\\\yxc\\\\Desktop\\\\AispringVideo\\\\yt-dlp.exe\" \"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe\")",
+      "Read(//usr/local/bin/**)",
+      "Read(//c/Users/yxc/**)",
+      "Bash(winget list *)",
+      "Bash(C:\\\\Users\\\\yxc\\\\yt-dlp.exe *)",
+      "Bash(rm -f \"C:\\\\Users\\\\yxc\\\\yt-dlp.exe\")",
+      "Bash(curl.exe -I \"https://github.com\")",
+      "Bash(npx -y yt-dlp --version)",
+      "Bash(npx -y yt-dlp-exec --version)",
+      "Bash(npm install *)",
+      "Bash(python -m pip --version)",
+      "Bash(python -m pip install yt-dlp)",
+      "Bash(npm view *)",
+      "Bash(pip show *)",
+      "WebFetch(domain:mvnrepository.com)",
+      "Bash(jar tf *)",
+      "Bash(javap -classpath /c/Users/yxc/.m2/repository/dev/langchain4j/langchain4j-core/1.15.0/langchain4j-core-1.15.0.jar dev.langchain4j.model.audio.AudioTranscriptionModel)",
+      "Bash(javap *)"
+    ]
+  }
+}
