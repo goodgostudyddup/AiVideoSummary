@@ -37,7 +37,8 @@
       "WebFetch(domain:mvnrepository.com)",
       "Bash(jar tf *)",
       "Bash(javap -classpath /c/Users/yxc/.m2/repository/dev/langchain4j/langchain4j-core/1.15.0/langchain4j-core-1.15.0.jar dev.langchain4j.model.audio.AudioTranscriptionModel)",
-      "Bash(javap *)"
+      "Bash(javap *)",
+      "Bash(git -C \"c:/Users/yxc/Desktop/AiVideoSummary\" log --oneline -20)"
     ]
   }
 }
