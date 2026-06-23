@@ -17,9 +17,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -32,6 +34,36 @@ import java.util.concurrent.*;
 @Service
 @Slf4j
 public class TaskProcessService {
+
+    @Value("${siliconflow.max-concurrent}")
+    private int maxConcurrentApiCalls;
+
+    /** 全局信号量，限制对 SiliconFlow API 的并发请求数 */
+    private Semaphore siliconflowSemaphore;
+
+    @PostConstruct
+    public void init() {
+        this.siliconflowSemaphore = new Semaphore(maxConcurrentApiCalls, true);
+        log.info("SiliconFlow API 并发限制已初始化: max={}", maxConcurrentApiCalls);
+
+        // 如果 Cookie 文件不在磁盘上，从 JAR 解压到临时目录
+        if (ytDlpCookiesPath != null && !ytDlpCookiesPath.isBlank()) {
+            File f = new File(ytDlpCookiesPath);
+            if (!f.exists()) {
+                try (InputStream is = getClass().getClassLoader().getResourceAsStream(ytDlpCookiesPath)) {
+                    if (is != null) {
+                        File tmp = File.createTempFile("bilibili_cookies_", ".txt");
+                        Files.copy(is, tmp.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        tmp.deleteOnExit();
+                        ytDlpCookiesPath = tmp.getAbsolutePath();
+                        log.info("Cookie 已解压到: {}", ytDlpCookiesPath);
+                    }
+                } catch (IOException e) {
+                    log.warn("Cookie 文件处理失败", e);
+                }
+            }
+        }
+    }
 
     /** 正在处理的 MD5 集合，防止相同视频重复处理 */
     private final Set<String> processingMd5s = ConcurrentHashMap.newKeySet();
@@ -53,6 +85,9 @@ public class TaskProcessService {
 
     @Value("${yt-dlp.path:yt-dlp}")
     private String ytDlpPath;
+
+    @Value("${yt-dlp.cookies-path:}")
+    private String ytDlpCookiesPath;
 
     @Value("${video.upload.dir:./uploads}")
     private String uploadDir;
@@ -186,7 +221,7 @@ public class TaskProcessService {
 
     private String transcribeFromVideo(String videoPath) throws IOException {
         File videoFile = new File(videoPath);
-        log.info("从视频分段转写: {}", videoFile.getName());
+        log.info("从语音分段转写: {}", videoFile.getName());
         return transcribeLargeAudio(videoFile);
     }
 
@@ -243,7 +278,16 @@ public class TaskProcessService {
                 File seg = segments[i];
                 futures[i] = CompletableFuture.supplyAsync(() -> {
                     try {
-                        log.info("转写切片 {}/{}：{}", idx + 1, segments.length, seg.getName());
+                        siliconflowSemaphore.acquire();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("等待 SiliconFlow 信号量被中断", e);
+                    }
+                    try {
+                        log.info("转写切片 {}/{}：{}（当前并发: {}/{}）",
+                                idx + 1, segments.length, seg.getName(),
+                                maxConcurrentApiCalls - siliconflowSemaphore.availablePermits(),
+                                maxConcurrentApiCalls);
                         byte[] audioBytes = Files.readAllBytes(seg.toPath());
                         Audio audio = Audio.builder().binaryData(audioBytes).mimeType("audio/mp4").build();
                         String text = audioTranscriptionModel.transcribe(
@@ -252,6 +296,8 @@ public class TaskProcessService {
                         return text;
                     } catch (Exception e) {
                         throw new RuntimeException(e);
+                    } finally {
+                        siliconflowSemaphore.release();
                     }
                 }, executor);
             }
@@ -322,10 +368,23 @@ public class TaskProcessService {
      * 非流式调用 Chat API（用于中间分段摘要，通过 LangChain4j）
      */
     private String callGptApi(String promptPrefix, String content) {
-        ChatResponse response = chatModel.chat(UserMessage.from(promptPrefix + content));
-        String text = response.aiMessage().text();
-        if (text == null) throw new RuntimeException("Chat API 返回空内容");
-        return text;
+        try {
+            siliconflowSemaphore.acquire();
+            log.info("非流式 Chat API 调用（当前并发: {}/{}）",
+                    maxConcurrentApiCalls - siliconflowSemaphore.availablePermits(),
+                    maxConcurrentApiCalls);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("等待 SiliconFlow 信号量被中断", e);
+        }
+        try {
+            ChatResponse response = chatModel.chat(UserMessage.from(promptPrefix + content));
+            String text = response.aiMessage().text();
+            if (text == null) throw new RuntimeException("Chat API 返回空内容");
+            return text;
+        } finally {
+            siliconflowSemaphore.release();
+        }
     }
 
     /**
@@ -336,6 +395,16 @@ public class TaskProcessService {
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(UserMessage.from(promptPrefix + content));
 
+        try {
+            siliconflowSemaphore.acquire();
+            log.info("流式 Chat API 调用（当前并发: {}/{}）",
+                    maxConcurrentApiCalls - siliconflowSemaphore.availablePermits(),
+                    maxConcurrentApiCalls);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("等待 SiliconFlow 信号量被中断", e);
+        }
+
         StringBuilder fullContent = new StringBuilder();
         int[] lastSaveLength = {0};
         CompletableFuture<String> future = new CompletableFuture<>();
@@ -344,8 +413,8 @@ public class TaskProcessService {
             @Override
             public void onPartialResponse(String token) {
                 fullContent.append(token);
-                System.out.print(token);
-                System.out.flush();
+//                System.out.print(token);
+//                System.out.flush();
 
                 if (taskId != null && fullContent.length() - lastSaveLength[0] > 200) {
                     VideoTask partial = new VideoTask();
@@ -358,20 +427,25 @@ public class TaskProcessService {
 
             @Override
             public void onCompleteResponse(ChatResponse response) {
-                System.out.println();
-                String result = fullContent.toString().trim();
-                if (taskId != null) {
-                    VideoTask partial = new VideoTask();
-                    partial.setId(taskId);
-                    partial.setSummary(result);
-                    taskService.updateById(partial);
-                    log.info("摘要最终保存完成，共 {} 字符", result.length());
+                try {
+                    System.out.println();
+                    String result = fullContent.toString().trim();
+                    if (taskId != null) {
+                        VideoTask partial = new VideoTask();
+                        partial.setId(taskId);
+                        partial.setSummary(result);
+                        taskService.updateById(partial);
+                        log.info("摘要最终保存完成，共 {} 字符", result.length());
+                    }
+                    future.complete(result);
+                } finally {
+                    siliconflowSemaphore.release();
                 }
-                future.complete(result);
             }
 
             @Override
             public void onError(Throwable error) {
+                siliconflowSemaphore.release();
                 future.completeExceptionally(error);
             }
         });
@@ -399,17 +473,36 @@ public class TaskProcessService {
         String outputTemplate = dir.getAbsolutePath() + "/%(id)s.%(ext)s";
         String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-        ProcessBuilder pb = new ProcessBuilder(
-                ytDlpPath, url,
-                "-f", "bestaudio",
-                "-x",
-                "--audio-format", "mp3",
-                "--audio-quality", "32k",
-                "--user-agent", userAgent,
-                "--referer", "https://www.bilibili.com",
-                "-o", outputTemplate,
-                "--no-playlist",
-                "--newline");
+        java.util.List<String> cmd = new java.util.ArrayList<>();
+        cmd.add(ytDlpPath);
+        cmd.add(url);
+        cmd.add("-f");
+        cmd.add("bestaudio");
+        cmd.add("-x");
+        cmd.add("--audio-format");
+        cmd.add("mp3");
+        cmd.add("--audio-quality");
+        cmd.add("32k");
+        cmd.add("--user-agent");
+        cmd.add(userAgent);
+        cmd.add("--referer");
+        cmd.add("https://www.bilibili.com");
+        cmd.add("--add-header");
+        cmd.add("Origin:https://www.bilibili.com");
+        cmd.add("--add-header");
+        cmd.add("Accept-Language:zh-CN,zh;q=0.9,en;q=0.8");
+        cmd.add("--add-header");
+        cmd.add("Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        if (ytDlpCookiesPath != null && !ytDlpCookiesPath.isBlank()) {
+            cmd.add("--cookies");
+            cmd.add(ytDlpCookiesPath);
+        }
+        cmd.add("-o");
+        cmd.add(outputTemplate);
+        cmd.add("--no-playlist");
+        cmd.add("--newline");
+
+        ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
         Process process = pb.start();
 

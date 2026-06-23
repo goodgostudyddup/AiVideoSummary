@@ -1,0 +1,31 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+
+.bilibili.com	TRUE	/	FALSE	1803915001	buvid3	610FB77A-A7E2-F8B3-B3B9-2D2999CBF58202230infoc
+.bilibili.com	TRUE	/	FALSE	1803915001	b_nut	1772379002
+.bilibili.com	TRUE	/	FALSE	1803915001	_uuid	1075CD9CD-4DA8-9F47-4DD10-3CD2E414BE1C01585infoc
+.bilibili.com	TRUE	/	FALSE	1806939002	buvid_fp	b66cb7da3085170e3c08c2bc995422dc
+.bilibili.com	TRUE	/	FALSE	1816675235	buvid4	BCFDDA1B-8ACB-90C9-956B-FCA5A2A51E3003141-026030123-CbBo60wan5eDhM4oxZkQSA%3D%3D
+.bilibili.com	TRUE	/	TRUE	1797589445	DedeUserID	1830643864
+.bilibili.com	TRUE	/	TRUE	1797589445	DedeUserID__ckMd5	4a02df9f72eb08e1
+.bilibili.com	TRUE	/	FALSE	1806939387	LIVE_BUVID	AUTO7617723793876038
+.bilibili.com	TRUE	/	FALSE	1813651194	theme-tip-show	SHOWED
+.bilibili.com	TRUE	/	FALSE	1807017734	rpdid	|(umRRk~m~Rl0J'u~~kRl~~JJ
+.bilibili.com	TRUE	/	FALSE	1804078778	theme-avatar-tip-show	SHOWED
+.bilibili.com	TRUE	/	FALSE	1804079265	hit-dyn-v2	1
+.bilibili.com	TRUE	/	FALSE	1812954776	CURRENT_QUALITY	80
+.bilibili.com	TRUE	/	FALSE	1813651193	home_feed_column	5
+.bilibili.com	TRUE	/	FALSE	1782296641	bili_ticket	eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODIyOTY2MzYsImlhdCI6MTc4MjAzNzM3NiwicGx0IjotMX0.YrTROFjJ9bGVb7lWdQG14EKCKfH4kQeVgv17v70X09k
+.bilibili.com	TRUE	/	FALSE	1782296641	bili_ticket_expires	1782296576
+.bilibili.com	TRUE	/	TRUE	1797589445	SESSDATA	bf616ee8%2C1797589439%2C64b9d%2A62CjBw9s-6KbR8aAuRkskLFobYh6ZKN8o5V0ws1k7dX0QpA8SEX4T5ykw9pi2PAaF4LGoSVmttZTdLRkcyUmtnRnpMUEpBVlE5TEVManZDbVhiOGl3aEowZ1ZrS0kzcTI5SnE0T3pJZmRhWVdDY3k0SnBrVk0yVEdCQ0JwcjN5Wk1MX0pYWFlCaU9RIIEC
+.bilibili.com	TRUE	/	TRUE	1797589445	bili_jct	9c7c73eee3bda8e51598f98a07ef4496
+.bilibili.com	TRUE	/	FALSE	1816597990	PVID	1
+.bilibili.com	TRUE	/	FALSE	1813651193	browser_resolution	1407-917
+www.bilibili.com	FALSE	/	FALSE	0	bmg_af_switch	1
+www.bilibili.com	FALSE	/	FALSE	0	bmg_src_def_domain	i0.hdslb.com
+www.bilibili.com	FALSE	/	FALSE	0	bmg_af_sc	{"none":{"on":1,"def":"i0.hdslb.com"},"sgp":{"on":1,"def":"i0-sgp.hdslb.com"}}
+.bilibili.com	TRUE	/	FALSE	1784705420	bp_t_offset_1830643864	1216656946673745920
+.bilibili.com	TRUE	/	FALSE	1813651195	CURRENT_FNVAL	4048
+.bilibili.com	TRUE	/	FALSE	0	sid	58h0f25r
+.bilibili.com	TRUE	/	FALSE	0	b_lsid	35CC3EB3_19EEE5A94DD

@@ -1,0 +1,12 @@
+-- 用户表
+CREATE TABLE IF NOT EXISTS `user` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `username` VARCHAR(50) NOT NULL UNIQUE,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- video_task 表新增 user_id 字段
+ALTER TABLE `video_task` ADD COLUMN `user_id` BIGINT NULL AFTER `id`;
+CREATE INDEX `idx_user_id` ON `video_task` (`user_id`);

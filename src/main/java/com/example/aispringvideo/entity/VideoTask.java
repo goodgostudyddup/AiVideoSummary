@@ -34,6 +34,12 @@ public class VideoTask implements Serializable {
     private Long id;
 
     /**
+     * 所属用户ID
+     */
+    @TableField("user_id")
+    private Long userId;
+
+    /**
      * 任务状态：PENDING, EXTRACTING, TRANSCRIBING, SUMMARIZING, SUCCESS, FAILED
      */
     @TableField("status")
